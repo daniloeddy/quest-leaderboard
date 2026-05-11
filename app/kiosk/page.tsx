@@ -21,13 +21,6 @@ export default function KioskPage() {
     kioskLiveSyncOn,
   );
 
-  // Register service worker on mount
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
-    }
-  }, []);
-
   // Triple-tap bottom-left corner → show paste overlay
   const handleTripleTap = useCallback(() => {
     setShowPasteOverlay(true);
