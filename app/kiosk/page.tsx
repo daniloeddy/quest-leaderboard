@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useCallback} from 'react';
+import {useState, useCallback, useEffect} from 'react';
 import {useScores} from '../hooks/useScores';
 import {useLeaderboardName} from '../hooks/useLeaderboardName';
 import {useTripleTap} from '../hooks/useTripleTap';
@@ -20,6 +20,24 @@ export default function KioskPage() {
     replaceAllScores,
     kioskLiveSyncOn,
   );
+
+  // Poll leaderboard name from server
+  useEffect(() => {
+    const pollName = async () => {
+      try {
+        const res = await fetch('/api/sync-name', { cache: 'no-store' });
+        if (res.ok) {
+          const name = await res.text();
+          if (name && typeof window !== 'undefined') {
+            localStorage.setItem('quest_leaderboard_name', name);
+          }
+        }
+      } catch {}
+    };
+    pollName();
+    const interval = setInterval(pollName, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Triple-tap bottom-left corner → show paste overlay
   const handleTripleTap = useCallback(() => {
