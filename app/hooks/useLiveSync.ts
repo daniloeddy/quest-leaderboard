@@ -20,7 +20,7 @@ export function useLiveSyncPublisher(scores: Score[], enabled: boolean) {
   }, [enabled]);
 
   useEffect(() => {
-    if (!enabled || scores.length === 0) return;
+    if (!enabled) return;
     const compact = scoresToCompact(scores);
     try { channelRef.current?.postMessage(compact); } catch {}
 
