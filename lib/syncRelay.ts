@@ -22,3 +22,23 @@ export async function setLatestScores(data: string): Promise<void> {
     console.error('Failed to write scores to KV');
   }
 }
+
+const NAME_KEY = 'quest_leaderboard_name_sync';
+
+export async function getLatestName(): Promise<string> {
+  try {
+    const name = await kv.get(NAME_KEY);
+    if (name === null || name === undefined) return '';
+    return typeof name === 'string' ? name : String(name);
+  } catch {
+    return '';
+  }
+}
+
+export async function setLatestName(name: string): Promise<void> {
+  try {
+    await kv.set(NAME_KEY, name);
+  } catch {
+    console.error('Failed to write name to KV');
+  }
+}
