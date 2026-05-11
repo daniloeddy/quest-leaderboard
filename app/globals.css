@@ -1,0 +1,45 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+@layer base {
+  button:not(:disabled), [role='button']:not(:disabled) { cursor: pointer; }
+}
+
+@keyframes kiosk-row-enter { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes kiosk-row-enter-podium { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes kiosk-golden-glow { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } 15% { box-shadow: 0 0 20px 4px rgba(255, 215, 0, 0.45), inset 0 0 12px 0 rgba(255, 215, 0, 0.12); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
+@keyframes kiosk-controller-float { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+@keyframes kiosk-header-glow { 0%, 100% { text-shadow: 0 0 10px rgba(0, 129, 251, 0.3), 0 0 30px rgba(0, 129, 251, 0.15); } 50% { text-shadow: 0 0 20px rgba(0, 129, 251, 0.5), 0 0 50px rgba(0, 129, 251, 0.25); } }
+@keyframes kiosk-toast-flash-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+.kiosk-row-enter { opacity: 0; animation: kiosk-row-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; animation-delay: var(--row-delay, 0ms); }
+.kiosk-row-enter-podium { opacity: 0; animation: kiosk-row-enter-podium 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; animation-delay: var(--row-delay, 0ms); }
+.kiosk-golden-glow { animation: kiosk-golden-glow 2s ease-out forwards; }
+.kiosk-controller-float { animation: kiosk-controller-float 2s ease-in-out infinite; }
+.kiosk-header-glow { animation: kiosk-header-glow 3s ease-in-out infinite; }
+.kiosk-toast-flash { animation: kiosk-toast-flash-in 0.25s ease-out; }
+
+.kiosk-view { height: 100dvh; overflow: hidden; overscroll-behavior: none; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.kiosk-view, .kiosk-view * { scrollbar-width: none; -ms-overflow-style: none; }
+.kiosk-view::-webkit-scrollbar, .kiosk-view *::-webkit-scrollbar { display: none; }
+.kiosk-gear-visible { opacity: 1; transition: opacity 0.4s ease-out; }
+.kiosk-gear-hidden { opacity: 0; pointer-events: none; transition: opacity 0.8s ease-in; }
+.mode-selector-btn { transform: scale(1); transition: transform 0.15s ease-out; }
+.mode-selector-btn:hover, .mode-selector-btn:active { transform: scale(1.03); }
+
+.print-certificates-overlay { position: fixed; inset: 0; z-index: 100; background: #0d1b2a; overflow-y: auto; }
+.print-certificates-container .certificate-page { box-shadow: 0 4px 40px rgba(0, 0, 0, 0.5); border-radius: 8px; }
+@media print {
+  body > * { visibility: hidden !important; }
+  .print-certificates-overlay, .print-certificates-overlay * { visibility: visible !important; }
+  .print-certificates-overlay { position: absolute; inset: 0; background: none; overflow: visible; }
+  .print-no-print { display: none !important; }
+  .print-certificates-container { display: block; padding: 0; gap: 0; }
+  .certificate-page { width: 11in !important; height: 8.5in !important; page-break-after: always; page-break-inside: avoid; box-shadow: none !important; border-radius: 0 !important; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
+  .certificate-page:last-child { page-break-after: auto; }
+  @page { size: 11in 8.5in landscape; margin: 0; }
+}
