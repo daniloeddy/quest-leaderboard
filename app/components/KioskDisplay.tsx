@@ -12,31 +12,6 @@ function formatScore(score: number): string {
 function EmptyState({leaderboardName}: {leaderboardName: string}) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6">
-      {/* Hero animation — falls back to pulsing emoji if video not available */}
-      <video
-        src="/hero-animation.mp4"
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="mb-8 w-48 md:w-56"
-        style={{borderRadius: '16px'}}
-        onError={e => {
-          // Hide video and show fallback emoji
-          const el = e.currentTarget;
-          el.style.display = 'none';
-          const fallback = el.nextElementSibling as HTMLElement | null;
-          if (fallback) fallback.style.display = 'block';
-        }}
-      />
-      <div
-        className="kiosk-controller-float mb-8 text-8xl"
-        style={{display: 'none'}}
-        role="img"
-        aria-label="Game controller">
-        🎮
-      </div>
-
       <h2
         className="kiosk-header-glow mb-4 text-center text-4xl font-extrabold tracking-tight text-white md:text-5xl"
         style={{fontFamily: "'Outfit', sans-serif"}}>
@@ -121,8 +96,6 @@ function LeaderboardState({
   scores: Score[];
   highlightIds: Set<string>;
 }) {
-  // Track whether this is the initial mount so we play entrance
-  // animations on first render but not on re-renders from data changes.
   const hasAnimated = useRef(false);
   const [animationKey, setAnimationKey] = useState(0);
 
@@ -131,7 +104,6 @@ function LeaderboardState({
       hasAnimated.current = true;
       return;
     }
-    // Bump key to replay entrance animations when scores list changes
     setAnimationKey(k => k + 1);
   }, [scores.length]);
 
