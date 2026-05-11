@@ -82,7 +82,9 @@ export function useLiveSyncSubscriber(
         if (!cancelled && res.ok) {
           setStatus('connected');
           const data = await res.text();
-         if (data) {
+          if (data) {
+            handleCompactData(data);
+          }
         } else if (!cancelled) { setStatus('error'); }
       } catch { if (!cancelled) setStatus('error'); }
     };
