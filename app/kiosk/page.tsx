@@ -62,12 +62,7 @@ export default function KioskPage() {
 
       {/* Header */}
       <header className="flex-shrink-0 px-6 pt-8 pb-4 text-center md:pt-12 md:pb-6">
-        <div className="mb-2 flex items-center justify-center gap-3">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-xl font-black text-white md:h-12 md:w-12 md:text-2xl"
-            style={{background: '#0081FB'}}>
-            Q
-          </div>
+    
           <h1
             className="text-2xl font-extrabold tracking-tight text-white md:text-3xl"
             style={{fontFamily: "'Outfit', sans-serif"}}>
