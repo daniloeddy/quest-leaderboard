@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect, useCallback} from 'react';
+import {useState, useCallback} from 'react';
 import {useScores} from '../hooks/useScores';
 import {useLeaderboardName} from '../hooks/useLeaderboardName';
 import {useTripleTap} from '../hooks/useTripleTap';
@@ -62,7 +62,7 @@ export default function KioskPage() {
 
       {/* Header */}
       <header className="flex-shrink-0 px-6 pt-8 pb-4 text-center md:pt-12 md:pb-6">
-    
+        <div className="mb-2 flex items-center justify-center gap-3">
           <h1
             className="text-2xl font-extrabold tracking-tight text-white md:text-3xl"
             style={{fontFamily: "'Outfit', sans-serif"}}>
