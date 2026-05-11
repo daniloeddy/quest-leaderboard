@@ -14,7 +14,7 @@ export default function KioskPage() {
   const {scores, isLoaded, highlightIds, replaceAllScores} = useScores();
   const {name: leaderboardName} = useLeaderboardName();
   const [showPasteOverlay, setShowPasteOverlay] = useState(false);
-  const [kioskLiveSyncOn, setKioskLiveSyncOn] = useState(false);
+  const [kioskLiveSyncOn, setKioskLiveSyncOn] = useState(true);
 
   const kioskSyncStatus = useLiveSyncSubscriber(
     replaceAllScores,
