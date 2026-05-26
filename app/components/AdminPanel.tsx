@@ -338,7 +338,7 @@ function AddScoreForm({ onAdd }: { onAdd: (name: string, score: number) => void 
 /* ── Main Admin Panel ──────────────────────────────────────────── */
 export function AdminPanel() {
   const { scores, addScore, editScore, removeScore, clearAllScores } = useScores();
-  const { name: leaderboardName, setName: setLeaderboardName } = useLeaderboardName();
+  const { name: leaderboardName, saveFinalName: setLeaderboardName } = useLeaderboardName();
   const [localName, setLocalName] = useState(leaderboardName);
   const [clearStep, setClearStep] = useState(0); // 0=idle, 1=confirm, 2=really
 
