@@ -354,9 +354,9 @@ export function AdminPanel() {
     setLeaderboardName(trimmed);
   };
 
-  const handleAddScore = (name: string, value: number) => {
-    addScore({ id: generateId(), name, score: value });
-  };
+ const handleAddScore = (name: string, value: number) => {
+  addScore(name, value);
+};
 
   const handleEditScore = (id: string, name: string, value: number) => {
     editScore(id, { name, score: value });
