@@ -72,3 +72,13 @@ export function useLeaderboardName() {
     const trimmed = value.trim();
     setRaw(trimmed);
     saveName(trimmed);
+  }, []);
+
+  return {
+    /** Display name — always non-empty, safe for rendering. */
+    name: displayName(raw),
+    isLoaded,
+    saveFinalName,
+    defaultName: DEFAULT_NAME,
+  };
+}
