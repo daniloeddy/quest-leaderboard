@@ -65,19 +65,19 @@ function EmptyState({ leaderboardName, heroText, heroImage }: {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-8">
       {heroImage ? (
-        <img
-          src={heroImage}
-          alt="Hero"
-          className="mb-8 max-h-[200px] w-auto max-w-[80%] object-contain"
-        />
-      ) : heroText ? (
-        <p className="mb-8 text-center text-3xl font-bold text-white/80 md:text-4xl"
-           style={{ fontFamily: "'Outfit', sans-serif" }}>
-          {heroText}
-        </p>
-      ) : null}
-
-      <div className="kiosk-controller-float text-8xl mb-6">🎮</div>
+  <img
+    src={heroImage}
+    alt="Hero"
+    className="mb-8 max-h-[300px] w-auto max-w-[85%] object-contain"
+  />
+) : heroText ? (
+  <p className="mb-8 text-center text-4xl font-bold text-white/80 md:text-5xl"
+     style={{ fontFamily: "'Outfit', sans-serif" }}>
+    {heroText}
+  </p>
+) : (
+  <div className="kiosk-controller-float text-8xl mb-6">🎮</div>
+)}
 
       <h2
         className="kiosk-header-glow text-center text-4xl font-extrabold tracking-tight text-white md:text-5xl"
