@@ -359,8 +359,8 @@ export function AdminPanel() {
 };
 
   const handleEditScore = (id: string, name: string, value: number) => {
-    editScore(id, { name, score: value });
-  };
+  editScore(id, name, value);
+};
 
   const handleClearAll = () => {
     if (clearStep === 0) {
