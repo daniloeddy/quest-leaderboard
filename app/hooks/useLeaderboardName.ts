@@ -26,6 +26,7 @@ function saveName(name: string): void {
   } catch {}
 }
 
+/** Returns the display name (never empty). */
 function displayName(raw: string): string {
   return raw.trim() || DEFAULT_NAME;
 }
@@ -66,16 +67,8 @@ export function useLeaderboardName() {
     return () => clearInterval(interval);
   }, [raw]);
 
+  /** Save the final value — call on blur, not on every keystroke. */
   const saveFinalName = useCallback((value: string) => {
     const trimmed = value.trim();
     setRaw(trimmed);
     saveName(trimmed);
-  }, []);
-
-  return {
-    name: displayName(raw),
-    isLoaded,
-    saveFinalName,
-    defaultName: DEFAULT_NAME,
-  };
-}
