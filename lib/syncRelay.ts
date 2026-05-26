@@ -6,7 +6,6 @@ export async function getLatestScores(): Promise<string> {
   try {
     const scores = await kv.get(SCORES_KEY);
     if (scores === null || scores === undefined) return '[]';
-    // @vercel/kv auto-parses JSON, so we need to re-stringify it
     if (typeof scores === 'string') return scores;
     return JSON.stringify(scores);
   } catch {
@@ -42,19 +41,7 @@ export async function setLatestName(name: string): Promise<void> {
     console.error('Failed to write name to KV');
   }
 }
-// ─── Game Name ────────────────────────────────────────────
 
-const GAME_NAME_KEY = 'quest_game_name_sync';
-
-export async function getLatestGameName(): Promise<string> {
-  try {
-    const name = await kv.get(GAME_NAME_KEY);
-    if (name === null || name === undefined) return '';
-    return typeof name === 'string' ? name : String(name);
-  } catch {
-    return '';
-  }
-}
 // ─── Game Name ────────────────────────────────────────────
 
 const GAME_NAME_KEY = 'quest_game_name_sync';
