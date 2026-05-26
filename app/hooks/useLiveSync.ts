@@ -12,6 +12,7 @@ const BROADCAST_CHANNEL_NAME = 'quest_scores_sync';
 export function useLiveSyncPublisher(scores: Score[], enabled: boolean) {
   const [status, setStatus] = useState<SyncStatus>('off');
   const channelRef = useRef<BroadcastChannel | null>(null);
+  const prevScoresRef = useRef<string>('');
 
   useEffect(() => {
     if (!enabled) { channelRef.current?.close(); channelRef.current = null; return; }
@@ -20,23 +21,29 @@ export function useLiveSyncPublisher(scores: Score[], enabled: boolean) {
   }, [enabled]);
 
   useEffect(() => {
-    if (!enabled) return;
     const compact = scoresToCompact(scores);
 
-    // Always broadcast via BroadcastChannel (same-browser, instant)
-    try { channelRef.current?.postMessage(compact); } catch {}
+    // Always broadcast via BroadcastChannel if enabled (same-browser instant)
+    if (enabled) {
+      try { channelRef.current?.postMessage(compact); } catch {}
+    }
 
-    // POST to server relay (best-effort, unreliable on serverless)
+    // ALWAYS push to server when scores change (ensures clears propagate to Redis)
+    // This is critical: even if Live Sync toggle is off, the server must know about clears
+    if (compact === prevScoresRef.current) return; // Dedup — skip if unchanged
+    prevScoresRef.current = compact;
+
     const controller = new AbortController();
-    setStatus('connecting');
+    if (enabled) setStatus('connecting');
+
     fetch('/api/sync', {
       method: 'POST',
       body: compact,
       headers: { 'Content-Type': 'application/json' },
       signal: controller.signal,
     })
-      .then(res => setStatus(res.ok ? 'connected' : 'error'))
-      .catch(() => setStatus('error'));
+      .then(res => { if (enabled) setStatus(res.ok ? 'connected' : 'error'); })
+      .catch(() => { if (enabled) setStatus('error'); });
 
     return () => controller.abort();
   }, [enabled, scores]);
@@ -54,37 +61,26 @@ export function useLiveSyncSubscriber(
   const callbackRef = useRef(onScoresReceived);
   callbackRef.current = onScoresReceived;
   const lastDataRef = useRef<string>('');
-  const lastLocalUpdateRef = useRef<number>(0);
 
-  const handleCompactData = useCallback((compact: string, source: 'broadcast' | 'poll') => {
+  const handleCompactData = useCallback((compact: string) => {
     if (compact === lastDataRef.current) return;
-    // If we received data from BroadcastChannel recently (within 5s),
-    // ignore stale poll results from the server
-    if (source === 'poll' && Date.now() - lastLocalUpdateRef.current < 5000) {
-      return;
-    }
     lastDataRef.current = compact;
-    if (source === 'broadcast') {
-      lastLocalUpdateRef.current = Date.now();
-    }
     const parsed = compactToScores(compact);
     if (parsed !== null) callbackRef.current(parsed);
   }, []);
 
-  // BroadcastChannel (instant, same-browser) — PRIORITY SOURCE
   useEffect(() => {
     if (!enabled) return;
     let channel: BroadcastChannel | null = null;
     try {
       channel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
       channel.onmessage = (event: MessageEvent) => {
-        if (typeof event.data === 'string') handleCompactData(event.data, 'broadcast');
+        if (typeof event.data === 'string') handleCompactData(event.data);
       };
     } catch {}
     return () => { channel?.close(); };
   }, [enabled, handleCompactData]);
 
-  // HTTP polling (cross-device fallback, deprioritized after BroadcastChannel)
   useEffect(() => {
     if (!enabled) { setStatus('off'); return; }
     let cancelled = false;
@@ -98,7 +94,7 @@ export function useLiveSyncSubscriber(
           setStatus('connected');
           const data = await res.text();
           if (data) {
-            handleCompactData(data, 'poll');
+            handleCompactData(data);
           }
         } else if (!cancelled) { setStatus('error'); }
       } catch { if (!cancelled) setStatus('error'); }
