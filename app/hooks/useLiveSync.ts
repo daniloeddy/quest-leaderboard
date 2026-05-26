@@ -22,8 +22,11 @@ export function useLiveSyncPublisher(scores: Score[], enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
     const compact = scoresToCompact(scores);
+
+    // Always broadcast via BroadcastChannel (same-browser, instant)
     try { channelRef.current?.postMessage(compact); } catch {}
 
+    // POST to server relay (best-effort, unreliable on serverless)
     const controller = new AbortController();
     setStatus('connecting');
     fetch('/api/sync', {
@@ -39,6 +42,7 @@ export function useLiveSyncPublisher(scores: Score[], enabled: boolean) {
   }, [enabled, scores]);
 
   useEffect(() => { if (!enabled) setStatus('off'); }, [enabled]);
+
   return status;
 }
 
@@ -50,26 +54,37 @@ export function useLiveSyncSubscriber(
   const callbackRef = useRef(onScoresReceived);
   callbackRef.current = onScoresReceived;
   const lastDataRef = useRef<string>('');
+  const lastLocalUpdateRef = useRef<number>(0);
 
-  const handleCompactData = useCallback((compact: string) => {
+  const handleCompactData = useCallback((compact: string, source: 'broadcast' | 'poll') => {
     if (compact === lastDataRef.current) return;
+    // If we received data from BroadcastChannel recently (within 5s),
+    // ignore stale poll results from the server
+    if (source === 'poll' && Date.now() - lastLocalUpdateRef.current < 5000) {
+      return;
+    }
     lastDataRef.current = compact;
+    if (source === 'broadcast') {
+      lastLocalUpdateRef.current = Date.now();
+    }
     const parsed = compactToScores(compact);
     if (parsed !== null) callbackRef.current(parsed);
   }, []);
 
+  // BroadcastChannel (instant, same-browser) — PRIORITY SOURCE
   useEffect(() => {
     if (!enabled) return;
     let channel: BroadcastChannel | null = null;
     try {
       channel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
       channel.onmessage = (event: MessageEvent) => {
-        if (typeof event.data === 'string') handleCompactData(event.data);
+        if (typeof event.data === 'string') handleCompactData(event.data, 'broadcast');
       };
     } catch {}
     return () => { channel?.close(); };
   }, [enabled, handleCompactData]);
 
+  // HTTP polling (cross-device fallback, deprioritized after BroadcastChannel)
   useEffect(() => {
     if (!enabled) { setStatus('off'); return; }
     let cancelled = false;
@@ -83,7 +98,7 @@ export function useLiveSyncSubscriber(
           setStatus('connected');
           const data = await res.text();
           if (data) {
-            handleCompactData(data);
+            handleCompactData(data, 'poll');
           }
         } else if (!cancelled) { setStatus('error'); }
       } catch { if (!cancelled) setStatus('error'); }
