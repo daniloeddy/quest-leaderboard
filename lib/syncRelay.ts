@@ -42,3 +42,24 @@ export async function setLatestName(name: string): Promise<void> {
     console.error('Failed to write name to KV');
   }
 }
+// ─── Game Name ────────────────────────────────────────────
+
+const GAME_NAME_KEY = 'quest_game_name_sync';
+
+export async function getLatestGameName(): Promise<string> {
+  try {
+    const name = await kv.get(GAME_NAME_KEY);
+    if (name === null || name === undefined) return '';
+    return typeof name === 'string' ? name : String(name);
+  } catch {
+    return '';
+  }
+}
+
+export async function setLatestGameName(name: string): Promise<void> {
+  try {
+    await kv.set(GAME_NAME_KEY, name);
+  } catch {
+    console.error('Failed to write game name to KV');
+  }
+}
