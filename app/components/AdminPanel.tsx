@@ -101,6 +101,7 @@ function GameNameEditor() {
     } catch {
       // ignore
     }
+    fetch('/api/sync-game-name', { method: 'POST', body: trimmed || 'Quest High Scores' }).catch(() => {});
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
   };
