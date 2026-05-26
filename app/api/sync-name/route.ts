@@ -1,10 +1,10 @@
 import { NextRequest } from 'next/server';
-import { getLatestName, setLatestName } from '@/lib/syncRelay';
+import { getLatestGameName, setLatestGameName } from '@/lib/syncRelay';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const name = await getLatestName();
+  const name = await getLatestGameName();
   return new Response(name, {
     headers: {
       'Content-Type': 'text/plain',
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     if (name.length > 60) {
       return new Response('Too long', { status: 400 });
     }
-    await setLatestName(name);
+    await setLatestGameName(name);
     return new Response('OK', { status: 200 });
   } catch {
     return new Response('Error', { status: 500 });
