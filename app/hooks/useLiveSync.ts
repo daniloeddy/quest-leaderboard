@@ -23,14 +23,13 @@ export function useLiveSyncPublisher(scores: Score[], enabled: boolean) {
   useEffect(() => {
     const compact = scoresToCompact(scores);
 
-    // Always broadcast via BroadcastChannel if enabled (same-browser instant)
+    // BroadcastChannel — only when toggle is on (same-browser instant sync)
     if (enabled) {
       try { channelRef.current?.postMessage(compact); } catch {}
     }
 
-    // ALWAYS push to server when scores change (ensures clears propagate to Redis)
-    // This is critical: even if Live Sync toggle is off, the server must know about clears
-    if (compact === prevScoresRef.current) return; // Dedup — skip if unchanged
+    // ALWAYS push to Redis — ensures clears propagate even when toggle is off
+    if (compact === prevScoresRef.current) return;
     prevScoresRef.current = compact;
 
     const controller = new AbortController();
@@ -69,6 +68,7 @@ export function useLiveSyncSubscriber(
     if (parsed !== null) callbackRef.current(parsed);
   }, []);
 
+  // BroadcastChannel (instant, same-browser)
   useEffect(() => {
     if (!enabled) return;
     let channel: BroadcastChannel | null = null;
@@ -81,6 +81,7 @@ export function useLiveSyncSubscriber(
     return () => { channel?.close(); };
   }, [enabled, handleCompactData]);
 
+  // HTTP polling (cross-device via Redis)
   useEffect(() => {
     if (!enabled) { setStatus('off'); return; }
     let cancelled = false;
