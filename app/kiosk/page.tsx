@@ -1,18 +1,20 @@
 'use client';
 
-import {useState, useCallback, useEffect} from 'react';
-import {useScores} from '../hooks/useScores';
-import {useLeaderboardName} from '../hooks/useLeaderboardName';
-import {useTripleTap} from '../hooks/useTripleTap';
-import {useLiveSyncSubscriber} from '../hooks/useLiveSync';
-import {KioskDisplay} from '../components/KioskDisplay';
-import {PasteScoresOverlay} from '../components/PasteScoresOverlay';
+import { useState } from 'react';
+import { useScores } from '../hooks/useScores';
+import { useLeaderboardName } from '../hooks/useLeaderboardName';
+import { useHeroContent } from '../hooks/useHeroContent';
+import { useTripleTap } from '../hooks/useTripleTap';
+import { useLiveSyncSubscriber } from '../hooks/useLiveSync';
+import { KioskDisplay } from '../components/KioskDisplay';
+import { PasteScoresOverlay } from '../components/PasteScoresOverlay';
 
 const KIOSK_TOP_N = 10;
 
 export default function KioskPage() {
-  const {scores, isLoaded, highlightIds, replaceAllScores} = useScores();
-  const {name: leaderboardName} = useLeaderboardName();
+  const { scores, isLoaded, highlightIds, replaceAllScores } = useScores();
+  const { name: leaderboardName } = useLeaderboardName();
+  const { heroText, heroImage } = useHeroContent(false); // false = kiosk/subscriber mode
   const [showPasteOverlay, setShowPasteOverlay] = useState(false);
   const [kioskLiveSyncOn, setKioskLiveSyncOn] = useState(true);
 
@@ -21,44 +23,20 @@ export default function KioskPage() {
     kioskLiveSyncOn,
   );
 
-  // Poll leaderboard name from server
-  useEffect(() => {
-    const pollName = async () => {
-      try {
-        const res = await fetch('/api/sync-name', { cache: 'no-store' });
-        if (res.ok) {
-          const name = await res.text();
-          if (name && typeof window !== 'undefined') {
-            localStorage.setItem('quest_leaderboard_name', name);
-          }
-        }
-      } catch {}
-    };
-    pollName();
-    const interval = setInterval(pollName, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Triple-tap bottom-left corner → show paste overlay
-  const handleTripleTap = useCallback(() => {
+  const tripleTapHandler = useTripleTap(() => {
     setShowPasteOverlay(true);
-  }, []);
+  });
 
-  const onPointerDown = useTripleTap(handleTripleTap);
-
+  // Wait for localStorage to load before rendering
   if (!isLoaded) {
     return (
       <div
-        className="flex items-center justify-center"
+        className="kiosk-view flex items-center justify-center"
         style={{
-          height: '100dvh',
           background: 'linear-gradient(180deg, #1a2332 0%, #0d1b2a 100%)',
-        }}>
-        <div
-          className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white"
-          role="status"
-          aria-label="Loading"
-        />
+        }}
+      >
+        <div className="text-xl text-white/30">Loading...</div>
       </div>
     );
   }
@@ -70,38 +48,32 @@ export default function KioskPage() {
       className="kiosk-view relative flex flex-col"
       style={{
         background: 'linear-gradient(180deg, #1a2332 0%, #0d1b2a 100%)',
-        fontFamily: "'Outfit', sans-serif",
       }}
-      onPointerDown={onPointerDown}>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap"
-        rel="stylesheet"
-      />
-
-      {/* Header */}
-      <header className="flex-shrink-0 px-6 pt-8 pb-4 text-center md:pt-12 md:pb-6">
-        <div className="mb-2 flex items-center justify-center gap-3">
-          <h1
-            className="text-2xl font-extrabold tracking-tight text-white md:text-3xl"
-            style={{fontFamily: "'Outfit', sans-serif"}}>
-            {leaderboardName.toUpperCase()}
-          </h1>
-        </div>
-        <div
-          className="mx-auto h-1 w-20 rounded-full md:w-24"
-          style={{background: '#0081FB'}}
-        />
+      {...tripleTapHandler}
+    >
+      {/* Header — event name (single instance, NOT repeated in KioskDisplay) */}
+      <header className="flex-shrink-0 px-6 pt-6 pb-2 md:px-10 md:pt-8">
+        <h1
+          className="kiosk-header-glow text-center text-3xl font-extrabold tracking-tight text-white md:text-4xl"
+          style={{ fontFamily: "'Outfit', sans-serif" }}
+        >
+          {leaderboardName.toUpperCase()}
+        </h1>
       </header>
 
       {/* Main Content */}
-      <main className="flex flex-1 flex-col">
-        <KioskDisplay scores={kioskScores} highlightIds={highlightIds} leaderboardName={leaderboardName} />
+      <main className="flex flex-1 flex-col overflow-hidden">
+        <KioskDisplay
+          scores={kioskScores}
+          highlightIds={highlightIds}
+          leaderboardName={leaderboardName}
+          heroText={heroText}
+          heroImage={heroImage}
+        />
       </main>
 
-      {/* Footer */}
-      <footer className="flex-shrink-0 py-4 text-center">
-        <p className="text-xs text-white/20">{leaderboardName}</p>
-      </footer>
+      {/* Triple-tap zone (invisible, bottom-left corner) */}
+      <div className="fixed bottom-0 left-0 h-24 w-24 z-50" />
 
       {/* Live sync indicator */}
       {kioskLiveSyncOn && (
@@ -114,9 +86,9 @@ export default function KioskPage() {
                 : kioskSyncStatus === 'error'
                   ? '#ef4444'
                   : '#eab308',
-            opacity: 0.4,
             fontFamily: "'Outfit', sans-serif",
-          }}>
+          }}
+        >
           {kioskSyncStatus === 'connected'
             ? '● Live'
             : kioskSyncStatus === 'error'
@@ -128,18 +100,19 @@ export default function KioskPage() {
       {/* Version badge */}
       <span
         className="fixed bottom-4 left-4 text-xs text-white"
-        style={{opacity: 0.15, fontFamily: "'Outfit', sans-serif"}}>
-        v1.0
+        style={{ opacity: 0.15, fontFamily: "'Outfit', sans-serif" }}
+      >
+        v1.1
       </span>
 
-      {/* Paste Scores Overlay — triggered by triple-tap */}
+      {/* Paste overlay (hidden until triple-tap) */}
       {showPasteOverlay && (
         <PasteScoresOverlay
           onLoadScores={replaceAllScores}
           onClose={() => setShowPasteOverlay(false)}
           liveSyncStatus={kioskSyncStatus}
           liveSyncEnabled={kioskLiveSyncOn}
-          onToggleLiveSync={() => setKioskLiveSyncOn(prev => !prev)}
+          onToggleLiveSync={() => setKioskLiveSyncOn((prev) => !prev)}
         />
       )}
     </div>
