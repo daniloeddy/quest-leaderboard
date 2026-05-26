@@ -9,10 +9,11 @@ export type SyncStatus = 'off' | 'connecting' | 'connected' | 'error';
 const POLL_INTERVAL_MS = 2000;
 const BROADCAST_CHANNEL_NAME = 'quest_scores_sync';
 
-export function useLiveSyncPublisher(scores: Score[], enabled: boolean) {
+export function useLiveSyncPublisher(scores: Score[], enabled: boolean, isLoaded: boolean) {
   const [status, setStatus] = useState<SyncStatus>('off');
   const channelRef = useRef<BroadcastChannel | null>(null);
   const prevScoresRef = useRef<string>('');
+  const baselineSetRef = useRef(false);
 
   useEffect(() => {
     if (!enabled) { channelRef.current?.close(); channelRef.current = null; return; }
@@ -21,14 +22,24 @@ export function useLiveSyncPublisher(scores: Score[], enabled: boolean) {
   }, [enabled]);
 
   useEffect(() => {
+    // Wait for scores to load from localStorage before doing anything
+    if (!isLoaded) return;
+
     const compact = scoresToCompact(scores);
+
+    // First run after load — set baseline, DON'T post (avoids pushing stale localStorage to Redis)
+    if (!baselineSetRef.current) {
+      prevScoresRef.current = compact;
+      baselineSetRef.current = true;
+      return;
+    }
 
     // BroadcastChannel — only when toggle is on (same-browser instant sync)
     if (enabled) {
       try { channelRef.current?.postMessage(compact); } catch {}
     }
 
-    // ALWAYS push to Redis — ensures clears propagate even when toggle is off
+    // Only post to Redis if scores actually changed (user action: add/edit/clear)
     if (compact === prevScoresRef.current) return;
     prevScoresRef.current = compact;
 
@@ -45,7 +56,7 @@ export function useLiveSyncPublisher(scores: Score[], enabled: boolean) {
       .catch(() => { if (enabled) setStatus('error'); });
 
     return () => controller.abort();
-  }, [enabled, scores]);
+  }, [enabled, scores, isLoaded]);
 
   useEffect(() => { if (!enabled) setStatus('off'); }, [enabled]);
 
