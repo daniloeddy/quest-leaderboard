@@ -10,7 +10,7 @@ export default function AdminPage() {
     useScores();
 
   const [liveSyncOn, setLiveSyncOn] = useState(false);
-  const syncStatus = useLiveSyncPublisher(scores, liveSyncOn);
+  const syncStatus = useLiveSyncPublisher(scores, liveSyncOn, isLoaded);
 
   if (!isLoaded) {
     return (
