@@ -1,160 +1,163 @@
 'use client';
 
-import {useEffect, useRef, useState} from 'react';
-import type {Score} from '../hooks/useScores';
+import { useMemo } from 'react';
 
-function formatScore(score: number): string {
-  return score.toLocaleString();
+interface Score {
+  id: string;
+  name: string;
+  score: number;
+}
+
+/* ── Dynamic sizing helper ─────────────────────────────────────── */
+function getScoreSizing(count: number) {
+  // Fewer scores = bigger text for far-away visibility
+  if (count <= 3) {
+    return {
+      row: 'px-6 py-5 md:px-10 md:py-7 rounded-2xl',
+      rank: 'text-4xl md:text-5xl',
+      name: 'text-3xl md:text-4xl',
+      score: 'text-3xl md:text-4xl',
+      gap: 'gap-4',
+    };
+  }
+  if (count <= 5) {
+    return {
+      row: 'px-5 py-4 md:px-8 md:py-5 rounded-xl',
+      rank: 'text-3xl md:text-4xl',
+      name: 'text-2xl md:text-3xl',
+      score: 'text-2xl md:text-3xl',
+      gap: 'gap-3',
+    };
+  }
+  if (count <= 7) {
+    return {
+      row: 'px-4 py-3 md:px-6 md:py-4 rounded-xl',
+      rank: 'text-2xl md:text-3xl',
+      name: 'text-xl md:text-2xl',
+      score: 'text-xl md:text-2xl',
+      gap: 'gap-2.5',
+    };
+  }
+  // 8-10 scores: original compact sizing
+  return {
+    row: 'px-4 py-3 md:px-6 md:py-4 rounded-xl',
+    rank: 'text-xl md:text-2xl',
+    name: 'text-lg md:text-xl',
+    score: 'text-lg md:text-xl',
+    gap: 'gap-2',
+  };
+}
+
+/* ── Medal/rank display ────────────────────────────────────────── */
+function getRankDisplay(rank: number) {
+  if (rank === 1) return '🥇';
+  if (rank === 2) return '🥈';
+  if (rank === 3) return '🥉';
+  return `#${rank}`;
 }
 
 /* ── Empty State ───────────────────────────────────────────────── */
-
-function EmptyState({leaderboardName}: {leaderboardName: string}) {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6">
-      <h2
-        className="kiosk-header-glow mb-4 text-center text-4xl font-extrabold tracking-tight text-white md:text-5xl"
-        style={{fontFamily: "'Outfit', sans-serif"}}>
-        {leaderboardName}
-      </h2>
-      <p className="text-center text-xl text-white/60 md:text-2xl">
-        Be the first to set a high score!
-      </p>
-    </div>
-  );
-}
-
-/* ── Single Score State ────────────────────────────────────────── */
-
-function SingleScoreState({
-  score,
-  isHighlighted,
-}: {
-  score: Score;
-  isHighlighted: boolean;
+function EmptyState({ leaderboardName, heroText, heroImage }: {
+  leaderboardName: string;
+  heroText: string;
+  heroImage: string;
 }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6">
-      <div className="mb-6 text-7xl" role="img" aria-label="Star celebration">
-        ⭐
-      </div>
+    <div className="flex flex-1 flex-col items-center justify-center px-8">
+      {heroImage ? (
+        <img
+          src={heroImage}
+          alt="Hero"
+          className="mb-8 max-h-[200px] w-auto max-w-[80%] object-contain"
+        />
+      ) : heroText ? (
+        <p className="mb-8 text-center text-3xl font-bold text-white/80 md:text-4xl"
+           style={{ fontFamily: "'Outfit', sans-serif" }}>
+          {heroText}
+        </p>
+      ) : null}
+
+      <div className="kiosk-controller-float text-8xl mb-6">🎮</div>
+
       <h2
-        className="mb-3 text-center text-4xl font-extrabold tracking-tight text-white md:text-5xl"
-        style={{fontFamily: "'Outfit', sans-serif"}}>
-        {score.name}
+        className="kiosk-header-glow text-center text-4xl font-extrabold tracking-tight text-white md:text-5xl"
+        style={{ fontFamily: "'Outfit', sans-serif" }}>
+        READY TO PLAY
       </h2>
-      <div
-        className={`mb-6 text-center text-6xl font-black md:text-7xl ${isHighlighted ? 'kiosk-golden-glow' : ''}`}
-        style={{
-          color: '#FFD700',
-          fontFamily: "'Outfit', sans-serif",
-          borderRadius: '16px',
-        }}>
-        {formatScore(score.score)}
-      </div>
-      <p className="text-center text-xl text-white/60 md:text-2xl">
-        Can you beat them?
-      </p>
+      <p className="mt-4 text-lg text-white/40">Scores will appear here</p>
     </div>
   );
 }
 
-/* ── Rank helpers ──────────────────────────────────────────────── */
-
-function getRankEmoji(rank: number): string {
-  switch (rank) {
-    case 1:
-      return '🥇';
-    case 2:
-      return '🥈';
-    case 3:
-      return '🥉';
-    default:
-      return '';
-  }
-}
-
-function getRankColor(rank: number): string {
-  switch (rank) {
-    case 1:
-      return '#FFD700';
-    case 2:
-      return '#C0C0C0';
-    case 3:
-      return '#CD7F32';
-    default:
-      return '#FFFFFF';
-  }
-}
-
-/* ── Leaderboard State ─────────────────────────────────────────── */
-
-function LeaderboardState({
-  scores,
-  highlightIds,
-}: {
+/* ── Ranked State (multiple scores) ────────────────────────────── */
+function RankedState({ scores, highlightIds, heroText, heroImage }: {
   scores: Score[];
   highlightIds: Set<string>;
+  heroText: string;
+  heroImage: string;
 }) {
-  const hasAnimated = useRef(false);
-  const [animationKey, setAnimationKey] = useState(0);
-
-  useEffect(() => {
-    if (!hasAnimated.current) {
-      hasAnimated.current = true;
-      return;
-    }
-    setAnimationKey(k => k + 1);
-  }, [scores.length]);
+  const sizing = getScoreSizing(scores.length);
 
   return (
     <div className="flex w-full flex-1 flex-col px-4 py-2 md:px-8">
-      <h2
-        className="kiosk-header-glow mb-6 text-center text-3xl font-extrabold tracking-tight text-white md:mb-8 md:text-4xl"
-        style={{fontFamily: "'Outfit', sans-serif"}}>
-        HIGH SCORES
-      </h2>
-      <div className="flex flex-1 flex-col gap-2 md:gap-3">
+      {/* Hero Area: image OR custom text (replaces the old duplicate event name) */}
+      {heroImage ? (
+        <div className="mb-4 flex justify-center md:mb-6">
+          <img
+            src={heroImage}
+            alt="Hero"
+            className="max-h-[120px] w-auto max-w-[70%] object-contain md:max-h-[160px]"
+          />
+        </div>
+      ) : heroText ? (
+        <h2
+          className="kiosk-header-glow mb-4 text-center text-2xl font-extrabold tracking-tight text-white md:mb-6 md:text-3xl"
+          style={{ fontFamily: "'Outfit', sans-serif" }}>
+          {heroText}
+        </h2>
+      ) : (
+        <div className="mb-4 md:mb-6" /> /* Small spacer if no hero content */
+      )}
+
+      {/* Score Rows - dynamically sized */}
+      <div className={`flex flex-1 flex-col justify-center ${sizing.gap}`}>
         {scores.map((score, index) => {
           const rank = index + 1;
           const isTopThree = rank <= 3;
-          const emoji = getRankEmoji(rank);
-          const color = getRankColor(rank);
           const isHighlighted = highlightIds.has(score.id);
-          const entranceClass = isTopThree
-            ? 'kiosk-row-enter-podium'
-            : 'kiosk-row-enter';
+          const entranceClass = isTopThree ? 'kiosk-row-enter-podium' : 'kiosk-row-enter';
 
           return (
             <div
-              key={`${score.id}-${animationKey}`}
-              className={`flex items-center rounded-xl px-4 py-3 transition-all md:px-6 md:py-4 ${entranceClass} ${isHighlighted ? 'kiosk-golden-glow' : ''}`}
-              style={
-                {
-                  '--row-delay': `${index * 100}ms`,
-                  background: isTopThree
-                    ? `linear-gradient(135deg, ${color}15, ${color}08)`
-                    : 'rgba(255, 255, 255, 0.03)',
-                  borderLeft: isTopThree
-                    ? `4px solid ${color}`
-                    : '4px solid transparent',
-                } as React.CSSProperties
-              }>
-              <div
-                className="mr-3 w-10 text-center text-lg font-bold md:mr-4 md:w-12 md:text-xl"
-                style={{color}}>
-                {emoji || `#${rank}`}
-              </div>
-              <div
-                className="min-w-0 flex-1 truncate text-lg font-semibold text-white md:text-xl"
-                style={{fontFamily: "'Outfit', sans-serif"}}>
+              key={score.id}
+              className={`flex items-center ${sizing.row} transition-all ${entranceClass} ${isHighlighted ? 'kiosk-golden-glow' : ''}`}
+              style={{
+                '--row-delay': `${index * 80}ms`,
+                background: isTopThree
+                  ? 'rgba(255, 215, 0, 0.08)'
+                  : 'rgba(255, 255, 255, 0.03)',
+                border: isTopThree
+                  ? '1px solid rgba(255, 215, 0, 0.2)'
+                  : '1px solid rgba(255, 255, 255, 0.05)',
+              } as React.CSSProperties}
+            >
+              {/* Rank */}
+              <span className={`${sizing.rank} font-bold w-16 md:w-20 text-center`}
+                    style={{ color: isTopThree ? '#FFD700' : 'rgba(255,255,255,0.5)' }}>
+                {getRankDisplay(rank)}
+              </span>
+
+              {/* Player Name */}
+              <span className={`${sizing.name} flex-1 font-semibold text-white truncate`}
+                    style={{ fontFamily: "'Outfit', sans-serif" }}>
                 {score.name}
-              </div>
-              <div
-                className="ml-3 text-right text-lg font-bold tabular-nums md:text-xl"
-                style={{color, fontFamily: "'Outfit', sans-serif"}}>
-                {formatScore(score.score)}
-              </div>
+              </span>
+
+              {/* Score */}
+              <span className={`${sizing.score} font-black tabular-nums`}
+                    style={{ color: isTopThree ? '#FFD700' : '#0081FB' }}>
+                {score.score.toLocaleString()}
+              </span>
             </div>
           );
         })}
@@ -164,28 +167,22 @@ function LeaderboardState({
 }
 
 /* ── Main Export ────────────────────────────────────────────────── */
-
 export function KioskDisplay({
   scores,
   highlightIds = new Set(),
-  leaderboardName = 'Quest High Scores',
+  leaderboardName,
+  heroText = '',
+  heroImage = '',
 }: {
   scores: Score[];
   highlightIds?: Set<string>;
-  leaderboardName?: string;
+  leaderboardName: string;
+  heroText?: string;
+  heroImage?: string;
 }) {
   if (scores.length === 0) {
-    return <EmptyState leaderboardName={leaderboardName} />;
+    return <EmptyState leaderboardName={leaderboardName} heroText={heroText} heroImage={heroImage} />;
   }
 
-  if (scores.length === 1) {
-    return (
-      <SingleScoreState
-        score={scores[0]}
-        isHighlighted={highlightIds.has(scores[0].id)}
-      />
-    );
-  }
-
-  return <LeaderboardState scores={scores} highlightIds={highlightIds} />;
+  return <RankedState scores={scores} highlightIds={highlightIds} heroText={heroText} heroImage={heroImage} />;
 }
