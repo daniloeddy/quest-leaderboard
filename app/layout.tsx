@@ -1,23 +1,15 @@
-import type {Metadata, Viewport} from 'next';
+import type { Metadata } from 'next';
+import { Outfit } from 'next/font/google';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'Quest High Scores',
-  description: 'Digital leaderboard kiosk for Quest gaming events',
-  manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'Quest Scores',
-  },
-};
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-outfit',
+});
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: '#0081FB',
+export const metadata: Metadata = {
+  title: 'Quest High-Scores Leaderboard',
+  description: 'Live high-scores leaderboard for Meta Quest events',
 };
 
 export default function RootLayout({
@@ -26,13 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-      </head>
-      <body className="antialiased">
-        {children}
-      </body>
+    <html lang="en" className={outfit.variable}>
+      <body className="font-outfit antialiased">{children}</body>
     </html>
   );
 }
