@@ -1,5 +1,6 @@
 'use client';
 
+import { useLiveSyncPublisher } from '../hooks/useLiveSync';
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useScores } from '../hooks/useScores';
@@ -337,16 +338,8 @@ function AddScoreForm({ onAdd }: { onAdd: (name: string, score: number) => void 
 
 /* ── Main Admin Panel ──────────────────────────────────────────── */
 export function AdminPanel() {
-  const { scores, addScore, editScore, removeScore, clearAllScores } = useScores();
-   // Sync scores to Redis on every change
-  const scoresJson = JSON.stringify(scores);
-  useEffect(() => {
-    fetch('/api/sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: scoresJson,
-    }).catch(() => {});
-  }, [scoresJson]);
+  const { scores, addScore, editScore, removeScore, clearAllScores, isLoaded } = useScores();
+     useLiveSyncPublisher(scores, true, isLoaded ?? true);
   const { name: leaderboardName, saveFinalName: setLeaderboardName } = useLeaderboardName();
   const [localName, setLocalName] = useState(leaderboardName);
   const [clearStep, setClearStep] = useState(0); // 0=idle, 1=confirm, 2=really
