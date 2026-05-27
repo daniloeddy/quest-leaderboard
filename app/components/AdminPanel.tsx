@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useScores } from '../hooks/useScores';
 import { useLeaderboardName } from '../hooks/useLeaderboardName';
@@ -338,6 +338,14 @@ function AddScoreForm({ onAdd }: { onAdd: (name: string, score: number) => void 
 /* ── Main Admin Panel ──────────────────────────────────────────── */
 export function AdminPanel() {
   const { scores, addScore, editScore, removeScore, clearAllScores } = useScores();
+  // Sync scores to Redis on every change
+  useEffect(() => {
+    fetch('/api/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(scores),
+    }).catch(() => {});
+  }, [scores]);
   const { name: leaderboardName, saveFinalName: setLeaderboardName } = useLeaderboardName();
   const [localName, setLocalName] = useState(leaderboardName);
   const [clearStep, setClearStep] = useState(0); // 0=idle, 1=confirm, 2=really
