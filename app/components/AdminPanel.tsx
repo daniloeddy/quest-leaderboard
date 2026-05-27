@@ -338,14 +338,15 @@ function AddScoreForm({ onAdd }: { onAdd: (name: string, score: number) => void 
 /* ── Main Admin Panel ──────────────────────────────────────────── */
 export function AdminPanel() {
   const { scores, addScore, editScore, removeScore, clearAllScores } = useScores();
-  // Sync scores to Redis on every change
+   // Sync scores to Redis on every change
+  const scoresJson = JSON.stringify(scores);
   useEffect(() => {
     fetch('/api/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(scores),
+      body: scoresJson,
     }).catch(() => {});
-  }, [scores]);
+  }, [scoresJson]);
   const { name: leaderboardName, saveFinalName: setLeaderboardName } = useLeaderboardName();
   const [localName, setLocalName] = useState(leaderboardName);
   const [clearStep, setClearStep] = useState(0); // 0=idle, 1=confirm, 2=really
