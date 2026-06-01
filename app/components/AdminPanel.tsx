@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { useScores } from '../hooks/useScores';
 import { useLeaderboardName } from '../hooks/useLeaderboardName';
 import { useHeroContent } from '../hooks/useHeroContent';
+import { useTheme } from '../hooks/useTheme';
+import ThemeSelector from './ThemeSelector';
 
 interface Score {
   id: string;
@@ -32,7 +34,6 @@ function GameNameEditor() {
     const trimmed = val.trim();
     setGameName(trimmed);
     localStorage.setItem('quest_game_name', trimmed);
-    // Sync to server
     fetch('/api/sync-game-name', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -69,7 +70,6 @@ function HeroContentEditor() {
   const { heroText, heroImage, setHeroText, setHeroImage, clearHeroImage } = useHeroContent(true);
   const [localText, setLocalText] = useState(heroText);
 
-  // Sync local state when heroText loads from storage
   const textRef = useRef(heroText);
   if (textRef.current !== heroText && localText === textRef.current) {
     setLocalText(heroText);
@@ -112,7 +112,6 @@ function HeroContentEditor() {
         <p className="mb-2 text-xs text-white/20">
           Best: 1200×400px PNG with transparent background. Max 500KB.
         </p>
-
         {heroImage ? (
           <div className="relative rounded-lg border border-white/10 bg-black/30 p-4">
             <img
@@ -339,12 +338,12 @@ function AddScoreForm({ onAdd }: { onAdd: (name: string, score: number) => void 
 /* ── Main Admin Panel ──────────────────────────────────────────── */
 export function AdminPanel() {
   const { scores, addScore, editScore, removeScore, clearAllScores, isLoaded } = useScores();
-     useLiveSyncPublisher(scores, true, isLoaded ?? true);
+  useLiveSyncPublisher(scores, true, isLoaded ?? true);
   const { name: leaderboardName, saveFinalName: setLeaderboardName } = useLeaderboardName();
+  const { themeId, theme, changeTheme } = useTheme(false);
   const [localName, setLocalName] = useState(leaderboardName);
-  const [clearStep, setClearStep] = useState(0); // 0=idle, 1=confirm, 2=really
+  const [clearStep, setClearStep] = useState(0);
 
-  // Sync local name state with hook
   const nameRef = useRef(leaderboardName);
   if (nameRef.current !== leaderboardName && localName === nameRef.current) {
     setLocalName(leaderboardName);
@@ -356,13 +355,13 @@ export function AdminPanel() {
     setLeaderboardName(trimmed);
   };
 
- const handleAddScore = (name: string, value: number) => {
-  addScore(name, value);
-};
+  const handleAddScore = (name: string, value: number) => {
+    addScore(name, value);
+  };
 
   const handleEditScore = (id: string, name: string, value: number) => {
-  editScore(id, name, value);
-};
+    editScore(id, name, value);
+  };
 
   const handleClearAll = () => {
     if (clearStep === 0) {
@@ -375,7 +374,6 @@ export function AdminPanel() {
     }
   };
 
-  // Reset clear confirmation after 5 seconds
   if (clearStep > 0) {
     setTimeout(() => setClearStep(0), 5000);
   }
@@ -408,12 +406,26 @@ export function AdminPanel() {
           </div>
         </div>
 
+        {/* ── Theme Selector ──────────────────────────────── */}
+        <div className="mb-6 rounded-xl p-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white/40">
+            <span>🎨</span> Theme
+          </h3>
+          <ThemeSelector
+            currentThemeId={themeId}
+            onThemeChange={changeTheme}
+            theme={theme}
+          />
+          <p className="mt-2 text-xs text-white/20">
+            Changes apply to the kiosk display in real-time.
+          </p>
+        </div>
+
         {/* ── Leaderboard Title ─────────────────────────────── */}
         <div className="mb-6 rounded-xl p-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
           <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white/40">
             <span>📝</span> Event Settings
           </h3>
-
           <div className="mb-4">
             <label className="mb-1 block text-xs font-medium text-white/50">
               Event / Leaderboard Name
@@ -442,7 +454,6 @@ export function AdminPanel() {
               Shown on the kiosk display header and certificate
             </p>
           </div>
-
           <GameNameEditor />
         </div>
 
@@ -523,7 +534,7 @@ export function AdminPanel() {
 
         {/* ── Footer ───────────────────────────────────────── */}
         <div className="text-center text-xs text-white/15">
-          Quest Digital Leaderboard v1.1
+          Quest Digital Leaderboard v2.0
         </div>
       </div>
     </div>
