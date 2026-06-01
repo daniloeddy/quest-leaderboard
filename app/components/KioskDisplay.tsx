@@ -175,7 +175,7 @@ function RankedState({ scores, highlightIds, heroText, heroImage, theme }: {
               <span className={`${sizing.score} font-black tabular-nums`}
                     style={{
                       fontFamily: theme.fontScore,
-                      color: isTopThree ? rankColor : theme.accent,
+                      color: isTopThree ? rankColor : theme.textPrimary,
                     }}>
                 {score.score.toLocaleString()}
               </span>
