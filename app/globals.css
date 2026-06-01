@@ -7,7 +7,7 @@
 
 /* ===== Oakley Meta Fonts ===== */
 @font-face {
-  font-family: 'Avenir Next';
+  font-family: 'Avenir Next Regular';
   src: url('/fonts/AvenirNext-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
@@ -15,7 +15,7 @@
 }
 
 @font-face {
-  font-family: 'Avenir Next';
+  font-family: 'Avenir Next Medium';
   src: url('/fonts/AvenirNext-Medium.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
@@ -23,7 +23,7 @@
 }
 
 @font-face {
-  font-family: 'Avenir Next';
+  font-family: 'Avenir Next Heavy';
   src: url('/fonts/AvenirNext-Heavy.ttf') format('truetype');
   font-weight: 800;
   font-style: normal;
@@ -39,12 +39,11 @@
 }
 
 :root {
-  --font-avenir-regular: 'Avenir Next', sans-serif;
-  --font-avenir-medium: 'Avenir Next', sans-serif;
-  --font-avenir-heavy: 'Avenir Next', sans-serif;
+  --font-avenir-regular: 'Avenir Next Regular', sans-serif;
+  --font-avenir-medium: 'Avenir Next Medium', sans-serif;
+  --font-avenir-heavy: 'Avenir Next Heavy', sans-serif;
   --font-garamond-narrow: 'Garamond Narrow', serif;
 }
-
 @layer base {
   button:not(:disabled), [role='button']:not(:disabled) { cursor: pointer; }
 }
