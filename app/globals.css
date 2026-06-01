@@ -5,6 +5,46 @@
   --color-foreground: var(--foreground);
 }
 
+/* ===== Oakley Meta Fonts ===== */
+@font-face {
+  font-family: 'Avenir Next';
+  src: url('/fonts/AvenirNext-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Avenir Next';
+  src: url('/fonts/AvenirNext-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Avenir Next';
+  src: url('/fonts/AvenirNext-Heavy.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Garamond Narrow';
+  src: url('/fonts/GaramondNarrowPlain.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-avenir-regular: 'Avenir Next', sans-serif;
+  --font-avenir-medium: 'Avenir Next', sans-serif;
+  --font-avenir-heavy: 'Avenir Next', sans-serif;
+  --font-garamond-narrow: 'Garamond Narrow', serif;
+}
+
 @layer base {
   button:not(:disabled), [role='button']:not(:disabled) { cursor: pointer; }
 }
@@ -26,13 +66,16 @@
 .kiosk-view { height: 100dvh; overflow: hidden; overscroll-behavior: none; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
 .kiosk-view, .kiosk-view * { scrollbar-width: none; -ms-overflow-style: none; }
 .kiosk-view::-webkit-scrollbar, .kiosk-view *::-webkit-scrollbar { display: none; }
+
 .kiosk-gear-visible { opacity: 1; transition: opacity 0.4s ease-out; }
 .kiosk-gear-hidden { opacity: 0; pointer-events: none; transition: opacity 0.8s ease-in; }
+
 .mode-selector-btn { transform: scale(1); transition: transform 0.15s ease-out; }
 .mode-selector-btn:hover, .mode-selector-btn:active { transform: scale(1.03); }
 
 .print-certificates-overlay { position: fixed; inset: 0; z-index: 100; background: #0d1b2a; overflow-y: auto; }
 .print-certificates-container .certificate-page { box-shadow: 0 4px 40px rgba(0, 0, 0, 0.5); border-radius: 8px; }
+
 @media print {
   body > * { visibility: hidden !important; }
   .print-certificates-overlay, .print-certificates-overlay * { visibility: visible !important; }
