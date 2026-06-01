@@ -6,6 +6,7 @@ import { useLeaderboardName } from '../hooks/useLeaderboardName';
 import { useHeroContent } from '../hooks/useHeroContent';
 import { useTripleTap } from '../hooks/useTripleTap';
 import { useLiveSyncSubscriber } from '../hooks/useLiveSync';
+import { useTheme } from '../hooks/useTheme';
 import { KioskDisplay } from '../components/KioskDisplay';
 import { PasteScoresOverlay } from '../components/PasteScoresOverlay';
 
@@ -14,7 +15,8 @@ const KIOSK_TOP_N = 10;
 export default function KioskPage() {
   const { scores, isLoaded, highlightIds, replaceAllScores } = useScores();
   const { name: leaderboardName } = useLeaderboardName();
-  const { heroText, heroImage } = useHeroContent(false); // false = kiosk/subscriber mode
+  const { heroText, heroImage } = useHeroContent(false);
+  const { theme } = useTheme(true); // true = kiosk mode (polls Redis for theme changes)
   const [showPasteOverlay, setShowPasteOverlay] = useState(false);
   const [kioskLiveSyncOn, setKioskLiveSyncOn] = useState(true);
 
@@ -33,10 +35,10 @@ export default function KioskPage() {
       <div
         className="kiosk-view flex items-center justify-center"
         style={{
-          background: 'linear-gradient(180deg, #1a2332 0%, #0d1b2a 100%)',
+          background: theme.backgroundGradient || theme.background,
         }}
       >
-        <div className="text-xl text-white/30">Loading...</div>
+        <div className="text-xl" style={{ color: theme.textSecondary }}>Loading...</div>
       </div>
     );
   }
@@ -47,17 +49,23 @@ export default function KioskPage() {
     <div
       className="kiosk-view relative flex flex-col"
       style={{
-        background: 'linear-gradient(180deg, #1a2332 0%, #0d1b2a 100%)',
+        background: theme.backgroundGradient || theme.background,
       }}
       {...tripleTapHandler}
     >
-      {/* Header — event name (single instance, NOT repeated in KioskDisplay) */}
+      {/* Header — event name */}
       <header className="flex-shrink-0 px-6 pt-6 pb-2 md:px-10 md:pt-8">
         <h1
-          className="kiosk-header-glow text-center text-3xl font-extrabold tracking-tight text-white md:text-4xl"
-          style={{ fontFamily: "'Outfit', sans-serif" }}
+          className="kiosk-header-glow text-center text-3xl font-extrabold tracking-tight md:text-4xl"
+          style={{
+            fontFamily: theme.fontHeadline,
+            color: theme.textPrimary,
+            textTransform: theme.headlineCase,
+            letterSpacing: theme.headlineLetterSpacing,
+            lineHeight: theme.headlineLineHeight,
+          }}
         >
-          {leaderboardName.toUpperCase()}
+          {leaderboardName}
         </h1>
       </header>
 
@@ -69,6 +77,7 @@ export default function KioskPage() {
           leaderboardName={leaderboardName}
           heroText={heroText}
           heroImage={heroImage}
+          theme={theme}
         />
       </main>
 
@@ -86,7 +95,7 @@ export default function KioskPage() {
                 : kioskSyncStatus === 'error'
                   ? '#ef4444'
                   : '#eab308',
-            fontFamily: "'Outfit', sans-serif",
+            fontFamily: theme.fontBody,
           }}
         >
           {kioskSyncStatus === 'connected'
@@ -99,10 +108,10 @@ export default function KioskPage() {
 
       {/* Version badge */}
       <span
-        className="fixed bottom-4 left-4 text-xs text-white"
-        style={{ opacity: 0.15, fontFamily: "'Outfit', sans-serif" }}
+        className="fixed bottom-4 left-4 text-xs"
+        style={{ opacity: 0.15, fontFamily: theme.fontBody, color: theme.textPrimary }}
       >
-        v1.1
+        v2.0
       </span>
 
       {/* Paste overlay (hidden until triple-tap) */}
