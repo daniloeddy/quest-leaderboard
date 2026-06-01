@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { Theme } from '@/lib/themes';
 
 interface Score {
   id: string;
@@ -10,7 +11,6 @@ interface Score {
 
 /* ── Dynamic sizing helper ─────────────────────────────────────── */
 function getScoreSizing(count: number) {
-  // Fewer scores = bigger text for far-away visibility
   if (count <= 3) {
     return {
       row: 'px-6 py-5 md:px-10 md:py-7 rounded-2xl',
@@ -38,7 +38,6 @@ function getScoreSizing(count: number) {
       gap: 'gap-2.5',
     };
   }
-  // 8-10 scores: original compact sizing
   return {
     row: 'px-4 py-3 md:px-6 md:py-4 rounded-xl',
     rank: 'text-xl md:text-2xl',
@@ -49,7 +48,11 @@ function getScoreSizing(count: number) {
 }
 
 /* ── Medal/rank display ────────────────────────────────────────── */
-function getRankDisplay(rank: number) {
+function getRankDisplay(rank: number, theme: Theme) {
+  // For Oakley Meta: use text ranks (no emojis) for cleaner look
+  if (theme.id === 'oakley-meta') {
+    return `#${rank}`;
+  }
   if (rank === 1) return '🥇';
   if (rank === 2) return '🥈';
   if (rank === 3) return '🥉';
@@ -57,50 +60,58 @@ function getRankDisplay(rank: number) {
 }
 
 /* ── Empty State ───────────────────────────────────────────────── */
-function EmptyState({ leaderboardName, heroText, heroImage }: {
+function EmptyState({ leaderboardName, heroText, heroImage, theme }: {
   leaderboardName: string;
   heroText: string;
   heroImage: string;
+  theme: Theme;
 }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-8">
       {heroImage ? (
-  <img
-    src={heroImage}
-    alt="Hero"
-    className="mb-8 max-h-[300px] w-auto max-w-[85%] object-contain"
-  />
-) : heroText ? (
-  <p className="mb-8 text-center text-4xl font-bold text-white/80 md:text-5xl"
-     style={{ fontFamily: "'Outfit', sans-serif" }}>
-    {heroText}
-  </p>
-) : (
-  <div className="kiosk-controller-float text-8xl mb-6">🎮</div>
-)}
-
+        <img
+          src={heroImage}
+          alt="Hero"
+          className="mb-8 max-h-[300px] w-auto max-w-[85%] object-contain"
+        />
+      ) : heroText ? (
+        <p className="mb-8 text-center text-4xl font-bold md:text-5xl"
+           style={{ fontFamily: theme.fontSubhead, color: theme.textSecondary }}>
+          {heroText}
+        </p>
+      ) : (
+        <div className="kiosk-controller-float text-8xl mb-6">🎮</div>
+      )}
       <h2
-        className="kiosk-header-glow text-center text-4xl font-extrabold tracking-tight text-white md:text-5xl"
-        style={{ fontFamily: "'Outfit', sans-serif" }}>
+        className="kiosk-header-glow text-center text-4xl font-extrabold tracking-tight md:text-5xl"
+        style={{
+          fontFamily: theme.fontHeadline,
+          color: theme.textPrimary,
+          textTransform: theme.headlineCase,
+          letterSpacing: theme.headlineLetterSpacing,
+        }}>
         READY TO PLAY
       </h2>
-      <p className="mt-4 text-lg text-white/40">Scores will appear here</p>
+      <p className="mt-4 text-lg" style={{ color: theme.textSecondary }}>
+        Scores will appear here
+      </p>
     </div>
   );
 }
 
 /* ── Ranked State (multiple scores) ────────────────────────────── */
-function RankedState({ scores, highlightIds, heroText, heroImage }: {
+function RankedState({ scores, highlightIds, heroText, heroImage, theme }: {
   scores: Score[];
   highlightIds: Set<string>;
   heroText: string;
   heroImage: string;
+  theme: Theme;
 }) {
   const sizing = getScoreSizing(scores.length);
 
   return (
     <div className="flex w-full flex-1 flex-col px-4 py-2 md:px-8">
-      {/* Hero Area: image OR custom text (replaces the old duplicate event name) */}
+      {/* Hero Area */}
       {heroImage ? (
         <div className="mb-4 flex justify-center md:mb-6">
           <img
@@ -111,21 +122,28 @@ function RankedState({ scores, highlightIds, heroText, heroImage }: {
         </div>
       ) : heroText ? (
         <h2
-          className="kiosk-header-glow mb-4 text-center text-2xl font-extrabold tracking-tight text-white md:mb-6 md:text-3xl"
-          style={{ fontFamily: "'Outfit', sans-serif" }}>
+          className="mb-4 text-center text-2xl font-extrabold tracking-tight md:mb-6 md:text-3xl"
+          style={{
+            fontFamily: theme.fontSubhead,
+            color: theme.textSecondary,
+            letterSpacing: theme.subheadLetterSpacing,
+          }}>
           {heroText}
         </h2>
       ) : (
-        <div className="mb-4 md:mb-6" /> /* Small spacer if no hero content */
+        <div className="mb-4 md:mb-6" />
       )}
 
-      {/* Score Rows - dynamically sized */}
+      {/* Score Rows */}
       <div className={`flex flex-1 flex-col justify-center ${sizing.gap}`}>
         {scores.map((score, index) => {
           const rank = index + 1;
           const isTopThree = rank <= 3;
           const isHighlighted = highlightIds.has(score.id);
           const entranceClass = isTopThree ? 'kiosk-row-enter-podium' : 'kiosk-row-enter';
+          const rankColor = isTopThree
+            ? (rank === 1 ? theme.rank1Color : rank === 2 ? theme.rank2Color : theme.rank3Color)
+            : theme.textSecondary;
 
           return (
             <div
@@ -134,28 +152,31 @@ function RankedState({ scores, highlightIds, heroText, heroImage }: {
               style={{
                 '--row-delay': `${index * 80}ms`,
                 background: isTopThree
-                  ? 'rgba(255, 215, 0, 0.08)'
-                  : 'rgba(255, 255, 255, 0.03)',
+                  ? `${rankColor}12`
+                  : theme.cardBg,
                 border: isTopThree
-                  ? '1px solid rgba(255, 215, 0, 0.2)'
-                  : '1px solid rgba(255, 255, 255, 0.05)',
+                  ? `2px solid ${rankColor}40`
+                  : `1px solid ${theme.cardBorder}`,
               } as React.CSSProperties}
             >
               {/* Rank */}
               <span className={`${sizing.rank} font-bold w-16 md:w-20 text-center`}
-                    style={{ color: isTopThree ? '#FFD700' : 'rgba(255,255,255,0.5)' }}>
-                {getRankDisplay(rank)}
+                    style={{ color: rankColor, fontFamily: theme.fontBody }}>
+                {getRankDisplay(rank, theme)}
               </span>
 
               {/* Player Name */}
-              <span className={`${sizing.name} flex-1 font-semibold text-white truncate`}
-                    style={{ fontFamily: "'Outfit', sans-serif" }}>
+              <span className={`${sizing.name} flex-1 font-semibold truncate`}
+                    style={{ fontFamily: theme.fontBody, color: theme.textPrimary }}>
                 {score.name}
               </span>
 
               {/* Score */}
               <span className={`${sizing.score} font-black tabular-nums`}
-                    style={{ color: isTopThree ? '#FFD700' : '#0081FB' }}>
+                    style={{
+                      fontFamily: theme.fontScore,
+                      color: isTopThree ? rankColor : theme.accent,
+                    }}>
                 {score.score.toLocaleString()}
               </span>
             </div>
@@ -173,16 +194,17 @@ export function KioskDisplay({
   leaderboardName,
   heroText = '',
   heroImage = '',
+  theme,
 }: {
   scores: Score[];
   highlightIds?: Set<string>;
   leaderboardName: string;
   heroText?: string;
   heroImage?: string;
+  theme: Theme;
 }) {
   if (scores.length === 0) {
-    return <EmptyState leaderboardName={leaderboardName} heroText={heroText} heroImage={heroImage} />;
+    return <EmptyState leaderboardName={leaderboardName} heroText={heroText} heroImage={heroImage} theme={theme} />;
   }
-
-  return <RankedState scores={scores} highlightIds={highlightIds} heroText={heroText} heroImage={heroImage} />;
+  return <RankedState scores={scores} highlightIds={highlightIds} heroText={heroText} heroImage={heroImage} theme={theme} />;
 }
