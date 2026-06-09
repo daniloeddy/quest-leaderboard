@@ -69,8 +69,8 @@ function GameNameEditor() {
 function HeroContentEditor() {
   const { heroText, heroImage, setHeroText, setHeroImage, clearHeroImage } = useHeroContent(true);
   const [localText, setLocalText] = useState(heroText);
-
   const textRef = useRef(heroText);
+
   if (textRef.current !== heroText && localText === textRef.current) {
     setLocalText(heroText);
     textRef.current = heroText;
@@ -343,8 +343,8 @@ export function AdminPanel() {
   const { themeId, theme, changeTheme } = useTheme(false);
   const [localName, setLocalName] = useState(leaderboardName);
   const [clearStep, setClearStep] = useState(0);
-
   const nameRef = useRef(leaderboardName);
+
   if (nameRef.current !== leaderboardName && localName === nameRef.current) {
     setLocalName(leaderboardName);
     nameRef.current = leaderboardName;
@@ -406,63 +406,7 @@ export function AdminPanel() {
           </div>
         </div>
 
-        {/* ── Theme Selector ──────────────────────────────── */}
-        <div className="mb-6 rounded-xl p-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white/40">
-            <span>🎨</span> Theme
-          </h3>
-          <ThemeSelector
-            currentThemeId={themeId}
-            onThemeChange={changeTheme}
-            theme={theme}
-          />
-          <p className="mt-2 text-xs text-white/20">
-            Changes apply to the kiosk display in real-time.
-          </p>
-        </div>
-
-        {/* ── Leaderboard Title ─────────────────────────────── */}
-        <div className="mb-6 rounded-xl p-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white/40">
-            <span>📝</span> Event Settings
-          </h3>
-          <div className="mb-4">
-            <label className="mb-1 block text-xs font-medium text-white/50">
-              Event / Leaderboard Name
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={localName}
-                onChange={(e) => setLocalName(e.target.value)}
-                onBlur={handleSaveName}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSaveName();
-                }}
-                maxLength={60}
-                placeholder="e.g., MPMS 2026 Pickleball"
-                className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#0081FB] focus:outline-none"
-              />
-              <button
-                onClick={handleSaveName}
-                className="rounded-lg bg-[#0081FB] px-4 py-2 text-xs font-bold text-white hover:bg-[#0081FB]/80"
-              >
-                Save
-              </button>
-            </div>
-            <p className="mt-1.5 text-xs text-white/20">
-              Shown on the kiosk display header and certificate
-            </p>
-          </div>
-          <GameNameEditor />
-        </div>
-
-        {/* ── Hero Content ──────────────────────────────────── */}
-        <div className="mb-6">
-          <HeroContentEditor />
-        </div>
-
-        {/* ── Scores Table ──────────────────────────────────── */}
+        {/* ── Scores Table (PRIMARY ACTION — top of page) ──── */}
         <div className="mb-6 rounded-xl p-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white/40">
             <span>🏆</span> Scores ({scores.length})
@@ -530,6 +474,62 @@ export function AdminPanel() {
               )}
             </div>
           )}
+        </div>
+
+        {/* ── Theme Selector ──────────────────────────────── */}
+        <div className="mb-6 rounded-xl p-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white/40">
+            <span>🎨</span> Theme
+          </h3>
+          <ThemeSelector
+            currentThemeId={themeId}
+            onThemeChange={changeTheme}
+            theme={theme}
+          />
+          <p className="mt-2 text-xs text-white/20">
+            Changes apply to the kiosk display in real-time.
+          </p>
+        </div>
+
+        {/* ── Leaderboard Title ─────────────────────────────── */}
+        <div className="mb-6 rounded-xl p-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white/40">
+            <span>📝</span> Event Settings
+          </h3>
+          <div className="mb-4">
+            <label className="mb-1 block text-xs font-medium text-white/50">
+              Event / Leaderboard Name
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={localName}
+                onChange={(e) => setLocalName(e.target.value)}
+                onBlur={handleSaveName}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveName();
+                }}
+                maxLength={60}
+                placeholder="e.g., MPMS 2026 Pickleball"
+                className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#0081FB] focus:outline-none"
+              />
+              <button
+                onClick={handleSaveName}
+                className="rounded-lg bg-[#0081FB] px-4 py-2 text-xs font-bold text-white hover:bg-[#0081FB]/80"
+              >
+                Save
+              </button>
+            </div>
+            <p className="mt-1.5 text-xs text-white/20">
+              Shown on the kiosk display header and certificate
+            </p>
+          </div>
+          <GameNameEditor />
+        </div>
+
+        {/* ── Hero Content ──────────────────────────────────── */}
+        <div className="mb-6">
+          <HeroContentEditor />
         </div>
 
         {/* ── Footer ───────────────────────────────────────── */}
