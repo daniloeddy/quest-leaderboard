@@ -102,7 +102,53 @@ export const themes: Record<string, Theme> = {
     rank3Color: '#FF8000',
   },
 };
-
+// Add to your themes config (alongside 'meta-quest' and 'oakley')
+export const outdoorTheme = {
+  id: 'outdoor',
+  name: 'Outdoor (Light)',
+  description: 'High-contrast light mode for outdoor/sunlight kiosks',
+  fonts: {
+    heading: 'Outfit',
+    subheading: 'Outfit',
+    body: 'Outfit',
+    scores: 'Outfit',
+  },
+  colors: {
+    background: '#FFFFFF',
+    backgroundGradient: 'linear-gradient(180deg, #FFFFFF 0%, #F0F0F0 100%)',
+    text: '#000000',
+    textSecondary: '#1A1A1A',
+    primary: '#0064E0',       // Meta blue for accents
+    accent: '#FF8000',        // Orange for top 3 ranks
+    rankTop3: '#FF8000',
+    rankDefault: '#333333',
+    scoreBg: '#F5F5F5',
+    border: '#E0E0E0',
+    headerBg: '#FFFFFF',
+  },
+  fontWeights: {
+    heading: 800,      // Extra bold for sun readability
+    subheading: 700,
+    body: 600,         // Semi-bold minimum outdoors
+    scores: 800,
+  },
+  fontSizes: {
+    // Bumped +25% vs standard for outdoor visibility
+    eventTitle: '3.5rem',
+    gameName: '2rem',
+    playerName: '2.2rem',
+    score: '2.5rem',
+    rank: '2.8rem',
+  },
+  textTransform: {
+    heading: 'uppercase',
+    subheading: 'none',
+  },
+  letterSpacing: {
+    heading: '-0.02em',
+    body: '0',
+  },
+};
 export const defaultThemeId = 'meta-quest';
 
 export function getTheme(id: string): Theme {
