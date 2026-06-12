@@ -1,4 +1,5 @@
 // lib/themes.ts
+
 // Theme configuration for Quest Leaderboard
 
 export interface Theme {
@@ -101,54 +102,41 @@ export const themes: Record<string, Theme> = {
     rank2Color: '#FF8000',
     rank3Color: '#FF8000',
   },
-};
-// Add to your themes config (alongside 'meta-quest' and 'oakley')
-export const outdoorTheme = {
-  id: 'outdoor',
-  name: 'Outdoor (Light)',
-  description: 'High-contrast light mode for outdoor/sunlight kiosks',
-  fonts: {
-    heading: 'Outfit',
-    subheading: 'Outfit',
-    body: 'Outfit',
-    scores: 'Outfit',
-  },
-  colors: {
+  'outdoor': {
+    id: 'outdoor',
+    name: '☀️ Outdoor (Light)',
+    // Colors
     background: '#FFFFFF',
     backgroundGradient: 'linear-gradient(180deg, #FFFFFF 0%, #F0F0F0 100%)',
-    text: '#000000',
+    textPrimary: '#000000',
     textSecondary: '#1A1A1A',
-    primary: '#0064E0',       // Meta blue for accents
-    accent: '#FF8000',        // Orange for top 3 ranks
-    rankTop3: '#FF8000',
-    rankDefault: '#333333',
-    scoreBg: '#F5F5F5',
-    border: '#E0E0E0',
-    headerBg: '#FFFFFF',
-  },
-  fontWeights: {
-    heading: 800,      // Extra bold for sun readability
-    subheading: 700,
-    body: 600,         // Semi-bold minimum outdoors
-    scores: 800,
-  },
-  fontSizes: {
-    // Bumped +25% vs standard for outdoor visibility
-    eventTitle: '3.5rem',
-    gameName: '2rem',
-    playerName: '2.2rem',
-    score: '2.5rem',
-    rank: '2.8rem',
-  },
-  textTransform: {
-    heading: 'uppercase',
-    subheading: 'none',
-  },
-  letterSpacing: {
-    heading: '-0.02em',
-    body: '0',
+    accent: '#0064E0',
+    accentSecondary: '#FF8000',
+    cardBg: '#F5F5F5',
+    cardBorder: '#E0E0E0',
+    divider: '#E0E0E0',
+    // Typography
+    fontHeadline: 'var(--font-outfit)',
+    fontSubhead: 'var(--font-outfit)',
+    fontBody: 'var(--font-outfit)',
+    fontScore: 'var(--font-outfit)',
+    // Headline styling
+    headlineCase: 'uppercase',
+    headlineLetterSpacing: '-0.02em',
+    headlineLineHeight: '1.1',
+    // Subhead styling
+    subheadLetterSpacing: '0',
+    subheadLineHeight: '1.2',
+    // Body styling
+    bodyLetterSpacing: '0',
+    bodyLineHeight: '1.3',
+    // Top 3 accent (orange pops on white)
+    rank1Color: '#FF8000',
+    rank2Color: '#FF8000',
+    rank3Color: '#FF8000',
   },
 };
+
 export const defaultThemeId = 'meta-quest';
 
 export function getTheme(id: string): Theme {
